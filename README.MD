@@ -16,6 +16,20 @@ cd DSA3101
 ```
 or you can just open it manually (whichever you prefer).
 
-## To make changes:
+## To check for changes:
 
-blah
+```shell
+git status
+```
+
+If there are changes, run:
+
+```
+git pull
+```
+
+### To make a change:
+
+```shell
+
+```
