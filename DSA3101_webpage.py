@@ -4,23 +4,22 @@ import requests
 import base64
 from PIL import Image
 from io import BytesIO
-import os
-import torch
-from diffusers import AutoPipelineForImage2Image
-from diffusers.utils import make_image_grid, load_image
 
 ############################################################################
 #########           HOW TO LAUNCH & TEST THE WEBPAGE           #############
 # 1.
+#   type `pip install streamlit` in your terminal to install streamlit
+#   followed by `streamlit hello` to validate the installation
+# 2.
 #   type  `cd Desktop\DSA3101` in your terminal
 #   to navigate to the cloned repo locally, if not cloned yet,
 #   follow the README instructions on Github
 #   then type `streamlit run .\DSA3101_webpage.py` in your terminal to launch
-# 2.
+# 3.
 #   after the webpage launches,
 #   test using this URL below/just use any random image u have:
 #   https://images-na.ssl-images-amazon.com/images/I/41SyGjt4KdL.jpg
-# 3.
+# 4.
 #   enter some random text for the customisation prompt, then
 #   click the 'Generate Customised Image' button, 
 #   the text below the button differs if u r missing any input image/prompt
