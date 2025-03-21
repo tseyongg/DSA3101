@@ -4,10 +4,6 @@ import requests
 import base64
 from PIL import Image
 from io import BytesIO
-import os
-import torch
-from diffusers import AutoPipelineForImage2Image
-from diffusers.utils import make_image_grid, load_image
 
 ############################################################################
 #########           HOW TO LAUNCH & TEST THE WEBPAGE           #############
