@@ -5,7 +5,12 @@ We have developed an AI-powered platform which enables real-time product customi
 
 ## Set-Up
 
-### **Clone the repository to your computer**  
+### Install the required packages from `requirements.txt`
+```shell
+pip install -r requirements.txt
+```
+
+### Clone the repository to your computer  
 
 Run this in your terminal: 
 
@@ -21,10 +26,6 @@ cd DSA3101
 ```
 Or you can just open it manually (whichever you prefer).
 
-### Download the dataset
-The **Amazon Fashion Metadata** is hosted on Google Drive due to its large size. 
-You may download the dataset from this [link](https://drive.google.com/file/d/1hMd7FoqSBxce7rQxRTcXZ8G4mDXJB6Ry/view?usp=sharing).
-
 ### Checking for changes:
 
 To see if there are any updates:
@@ -38,6 +39,7 @@ If there are changes, pull the latest version:
 ```
 git pull 
 ```
+
 ## About Our Data
 ### Data Source
 Our platform uses the **Amazon Fashion Metadata** and its **5-core** data subset from [**Amazon Review Data (2018)**](https://nijianmo.github.io/amazon/index.html), released by Jianmo Ni at UCSD. These datasets provide key product information and user reviews relevant to fashion items. 
