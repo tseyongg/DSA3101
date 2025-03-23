@@ -1,0 +1,10 @@
+diffusers==0.32.2
+gdown==5.2.0
+ipython==8.12.3
+numpy==1.25.0
+pandas==2.0.2
+Pillow==9.5.0
+Pillow==11.1.0
+Requests==2.32.3
+streamlit==1.43.2
+torch==2.6.0
