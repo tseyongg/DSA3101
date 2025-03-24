@@ -60,16 +60,17 @@ else:
     print("Potential PII in reviewText:")
     print(pii_reviews[['reviewText']])
 
-# Function to extract EXIF data from an image in memory
+## Check for EXIF metadata in user-uploaded images
+### Function to extract EXIF data from an image in memory
 def extract_exif_from_url(image_url):
     try:
-        # Download image
+        ### Download image
         response = requests.get(image_url)
         if response.status_code == 200:
-            image = Image.open(io.BytesIO(response.content))  # Open image from the bytes data
+            image = Image.open(io.BytesIO(response.content))  ### Open image from the bytes data
             exif_data = image._getexif()
             if exif_data:
-                # Return EXIF data in readable format
+                ### Return EXIF data in readable format
                 return {TAGS.get(tag, tag): value for tag, value in exif_data.items()}
             else:
                 return None
@@ -80,28 +81,27 @@ def extract_exif_from_url(image_url):
         print(f"Error processing image {image_url}: {e}")
         return None
 
-# Analyze the whole 'image' column from the dataframe (df_5core)
+### Analyze the whole 'image' column from the dataframe (df_5core)
 exif_results = []
 for image_url in df_5core['image'].dropna():
-    # Check if the value looks like a string representation of a list
+    ### Check if the value looks like a string representation of a list
     if isinstance(image_url, str) and image_url.startswith('[') and image_url.endswith(']'):
         try:
-            # Convert string representation of list to actual list
+            ### Convert string representation of list to actual list
             url_list = ast.literal_eval(image_url)
             if url_list and isinstance(url_list, list):
                 image_url = url_list[0]  # Get the first URL from the list
-                print(f"Extracted URL from string list: {image_url}")
         except (ValueError, SyntaxError):
-            # If conversion fails, strip the brackets manually as fallback
+            ### If conversion fails, strip the brackets manually as fallback
             image_url = image_url.strip('[]').strip('\'\"')
             print(f"Manually extracted URL: {image_url}")
     
-    # Now process with the clean URL
+    ### Now process with the clean URL
     exif_data = extract_exif_from_url(image_url)
     if exif_data:
         exif_results.append((image_url, exif_data))
 
-# Print the EXIF metadata results
+### Print the EXIF metadata results
 if exif_results:
     print("EXIF Metadata from the analyzed images:")
     for url, exif in exif_results:
