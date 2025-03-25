@@ -25,6 +25,20 @@ df_meta = pd.read_json(output, lines=True)
 fp_review = r"reviews_AMAZON_FASHION.csv.gz"
 df_review = pd.read_csv(fp_review, header=None, names=['asin', 'reviewer_id', 'rating', 'unix_timestamp'])
 
+# 5-core data
+
+# functions to read json file and convert into pandas dataframe
+def parse_gz_jsonl(path):
+    with gzip.open(path, "rt", encoding="utf-8") as f:
+        for line in f:
+            yield json.loads(line.strip())
+
+def getDF_jsonl_gz(path):
+    data_list = list(parse_gz_jsonl(path))
+    return pd.DataFrame(data_list)
+
+fp_5core = r"AMAZON_FASHION_5core_meta.json.gz"
+df_5core = df_5core = getDF_jsonl_gz(fp_5core)
 
 
 # ========================================================
@@ -36,10 +50,17 @@ df_review = pd.read_csv(fp_review, header=None, names=['asin', 'reviewer_id', 'r
 # Hence, we will remove duplicate products based on `asin`, keeping only the first occurence
 df_meta = df_meta.drop_duplicates(subset='asin', keep='first')
 
+# As 5core contains user reviews for products, there will be duplicates of `asin` as each product can have multiple reviews
+# We will remove duplicates based on `image` instead
+df_5core['image_str'] = df_5core['image'].astype(str)  # Create helper column that converts list to string
+df_5core = df_5core.drop_duplicates(subset=['image_str'])  # Drop duplicates
+df_5core = df_5core.drop(columns=['image_str'])  # Remove helper column
 
 # Optional: Remove duplicates
 df_review_unique = df_review.drop_duplicates()
 
+# Convert 'reviewTime' to datetime in df_5core
+df_5core['reviewTime'] = pd.to_datetime(df_5core['reviewTime'], errors='coerce')
 
 # Drop irrelevant 'date' column (contains no date information)
 df_meta = df_meta.drop(columns=['date'])
@@ -49,6 +70,15 @@ columns_to_drop = na_percentage[na_percentage > 80].index
 # Drop the columns with more than 80% NaN values as they are likely to be useless in analysis
 df_meta = df_meta.drop(columns=columns_to_drop)
 
+# Drop irrelevant columns in 5core (not needed in analysis)
+df_5core = df_5core.drop(columns=['unixReviewTime', 'vote'])
+
+# ========================================================
+#                FUNCTION FOR CLEANED DATA
+# ========================================================
+
+def cleaned_5core():
+    return df_5core
 
 # ========================================================
 #                   DATA TRANSFORMATIONS
@@ -91,4 +121,4 @@ inventory_data = {
 }
 
 inventory_df = pd.DataFrame(inventory_data)
-print(inventory_df.head(10))
+# print(inventory_df.head(10))

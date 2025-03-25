@@ -8,51 +8,62 @@ import io
 import ast
 
 # Load the cleaned dataset
-df_5core = pd.read_csv("amazon_fashion_5core_cleaned.csv")
-df_meta = pd.read_csv("amazon_fashion_metadata_cleaned.csv")
+from DataPrep import cleaned_5core
+df_5core = cleaned_5core()
 
-## Check for potential PII in reviewerName and reviewText
-### Function to check if a name is likely a full name
+###########################################
+#                                         #
+# Check for potential PII in reviewerName #
+#                                         #
+###########################################
+
+# Function to check if a name is likely a full name
 def is_full_name(name):
     name = str(name).strip()
     
-    ### Ensure at least two words as it is likely a full name (excluding initials like "B.")
+    # Ensure at least two words as it is likely a full name (excluding initials like "B.")
     parts = name.split()
     
-    ### If only one word, it's not a full name
+    # If only one word, it's not a full name
     if len(parts) < 2:
         return False
     
-    ### Check if the last word is an initial (e.g., "B.")
+    # Check if the last word is an initial (e.g., "B.")
     if re.match(r"^[A-Z]\.$", parts[-1]): 
         return False
 
-    ### Allow names with at least two alphabetic words
+    # Allow names with at least two alphabetic words
     return all(re.match(r"^[A-Za-z-]+$", part) for part in parts)
 
-### Apply PII detection function for reviewer names
+# Apply PII detection function for reviewer names
 df_5core['potential_PII_name'] = df_5core['reviewerName'].apply(is_full_name)
 
-### Filter potential PII names
+# Show PII names
 pii_names = df_5core[df_5core['potential_PII_name']]
-print("Potential PII in reviewerName:")
+print("PII in reviewerName:")
 print(pii_names[['reviewerName']])
 
-### Function to detect emails
+###########################################
+#                                         #
+#  Check for potential PII in reviewText  #
+#                                         #
+###########################################
+
+# Function to detect emails
 def contains_email(text):
     email_pattern = r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
     return bool(re.search(email_pattern, str(text)))
 
-### Function to detect phone numbers (US format example, modify for other regions)
+# Function to detect phone numbers (US format example, modify for other regions)
 def contains_phone(text):
     phone_pattern = r'(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}'
     return bool(re.search(phone_pattern, str(text)))
 
-### Apply PII detection functions for reviewer text
+# Apply PII detection functions for reviewer text
 df_5core['contains_email'] = df_5core['reviewText'].apply(contains_email)
 df_5core['contains_phone'] = df_5core['reviewText'].apply(contains_phone)
 
-### Display PII-containing rows
+# Show PII-containing rows
 pii_reviews = df_5core[(df_5core['contains_email']) | (df_5core['contains_phone'])]
 if pii_reviews.empty:
     print("No potential PII found in reviewText.")
@@ -60,20 +71,30 @@ else:
     print("Potential PII in reviewText:")
     print(pii_reviews[['reviewText']])
 
-## Check for EXIF metadata in user-uploaded images
-### Function to extract EXIF data from an image in memory
+###########################################
+#                                         #
+#    Check for potential PII in images    #
+#                                         #
+###########################################
+
+# Function to extract EXIF data from an image in memory
 def extract_exif_from_url(image_url):
     try:
-        ### Download image
-        response = requests.get(image_url)
-        if response.status_code == 200:
-            image = Image.open(io.BytesIO(response.content))  ### Open image from the bytes data
-            exif_data = image._getexif()
-            if exif_data:
-                ### Return EXIF data in readable format
-                return {TAGS.get(tag, tag): value for tag, value in exif_data.items()}
+        # Ensure image_url is a clean string
+        if isinstance(image_url, list):
+            if len(image_url) > 0:
+                image_url = image_url[0]
             else:
                 return None
+
+        # Remove any extra brackets or quotes
+        image_url = image_url.strip("[]").strip("'\"")
+        
+        response = requests.get(image_url)  # Ensure it's a clean URL
+        if response.status_code == 200:
+            image = Image.open(io.BytesIO(response.content))
+            exif_data = image._getexif() or {}  # Prevent NoneType errors
+            return {TAGS.get(tag, tag): value for tag, value in exif_data.items()} if exif_data else None
         else:
             print(f"Failed to download image from {image_url}. Status code: {response.status_code}")
             return None
@@ -81,32 +102,36 @@ def extract_exif_from_url(image_url):
         print(f"Error processing image {image_url}: {e}")
         return None
 
-### Analyze the whole 'image' column from the dataframe (df_5core)
-exif_results = []
-for image_url in df_5core['image'].dropna():
-    ### Check if the value looks like a string representation of a list
-    if isinstance(image_url, str) and image_url.startswith('[') and image_url.endswith(']'):
+def process_image_urls(df_5core):
+    exif_results = []
+
+    for image_url in df_5core['image'].dropna():
+        # Handle cases where image_url might be a string representation of a list
         try:
-            ### Convert string representation of list to actual list
-            url_list = ast.literal_eval(image_url)
-            if url_list and isinstance(url_list, list):
-                image_url = url_list[0]  # Get the first URL from the list
+            # Try to safely convert string to list if it looks like a list representation
+            if isinstance(image_url, str) and image_url.startswith('[') and image_url.endswith(']'):
+                image_url = ast.literal_eval(image_url)
         except (ValueError, SyntaxError):
-            ### If conversion fails, strip the brackets manually as fallback
-            image_url = image_url.strip('[]').strip('\'\"')
-            print(f"Manually extracted URL: {image_url}")
-    
-    ### Now process with the clean URL
-    exif_data = extract_exif_from_url(image_url)
-    if exif_data:
-        exif_results.append((image_url, exif_data))
+            pass  # If conversion fails, keep as is
 
-### Print the EXIF metadata results
-if exif_results:
-    print("EXIF Metadata from the analyzed images:")
-    for url, exif in exif_results:
-        print(f"URL: {url}")
-        print(f"EXIF: {exif}\n")
-else:
-    print("No EXIF metadata found in the images.")
+        # Process single URL or first URL from list
+        exif_data = extract_exif_from_url(image_url)
+        if exif_data:
+            exif_results.append((image_url, exif_data))
 
+    return exif_results
+
+# Detection function for potential PII in images
+def main(df_5core):
+    exif_results = process_image_urls(df_5core)
+
+    if exif_results:
+        print("EXIF Metadata from the analyzed images:")
+        for url, exif in exif_results:
+            print(f"URL: {url}")
+            print(f"EXIF: {exif}\n")
+    else:
+        print("No EXIF metadata found in the images.")
+
+# Apply function on 5core data
+main(df_5core)
