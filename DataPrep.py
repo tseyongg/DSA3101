@@ -161,10 +161,22 @@ for asin in products:
     num_reviews = len(product_reviews)
     if num_reviews == 0:
         continue
-        
-    # Normally distributed sales counts (minimum 1, no upper bound)
-    sales_count_per_review = np.random.normal(loc=5, scale=3, size=num_reviews)
-    sales_count_per_review = np.maximum(np.round(sales_count_per_review).astype(int), 1)
+
+    # Convert all timestamps at once
+    sale_dates = pd.to_datetime(product_reviews['unix_timestamp'].values, unit='s')
+
+    # Compute the seasonality factor for each review using seasonality formula
+    seasonality_factor = 0.4 * np.sin(2 * np.pi * (sale_dates.month - 9) / 12) + 1.0
+
+    # Generate baseline sales count per review (normally distributed)
+    baseline_sales_count = np.random.normal(loc=5, scale=3, size=num_reviews)
+
+    # Apply seasonality factor to the baseline count and ensure a minimum of 1
+    sales_count_per_review = np.maximum(np.round(baseline_sales_count * seasonality_factor), 1).astype(int)
+
+    # # Normally distributed sales counts (minimum 1, no upper bound)
+    # sales_count_per_review = np.random.normal(loc=5, scale=3, size=num_reviews)
+    # sales_count_per_review = np.maximum(np.round(sales_count_per_review).astype(int), 1)
     total_sales = sum(sales_count_per_review)
     
     # Uniform distribution for price variation
@@ -173,8 +185,6 @@ for asin in products:
     quantities = np.random.exponential(scale=3, size=total_sales)
     quantities = np.maximum(np.round(quantities).astype(int), 1)
     
-    # Convert all timestamps at once
-    sale_dates = pd.to_datetime(product_reviews['unix_timestamp'].values, unit='s')
     
     # Process each review and generate multiple sales records per review
     sale_index = 0
@@ -199,6 +209,29 @@ for asin in products:
 sales_df = pd.DataFrame(sales_data)
 
 
+# ========================================================
+#              ADD SEASONAL EFFECTS TO QUANTITY
+# ========================================================
+
+def add_seasonal_effects(sales_df):
+    # Extract month from sale_date
+    sales_df['month'] = sales_df['sale_date'].dt.month
+    
+    # Compute the seasonality factor using the sine formula
+    sales_df['seasonality'] = 0.4 * np.sin(2 * np.pi * (sales_df['month'] - 9) / 12) + 1.0
+    
+    # Adjust the original quantity by the seasonality factor
+    sales_df['quantity'] = (sales_df['quantity'] * sales_df['seasonality']).apply(np.round).astype(int)
+    
+    # Ensure the adjusted quantity is at least 1
+    sales_df['quantity'] = sales_df['quantity'].apply(lambda x: max(1, x))
+    
+    # Drop helper columns
+    return sales_df.drop(columns=['month', 'seasonality'])
+
+sales_df = add_seasonal_effects(sales_df)
+
+
 if __name__ == "__main__":
     # print(catalogue.columns.tolist())
     # print(catalogue_images.columns.tolist())
@@ -207,4 +240,4 @@ if __name__ == "__main__":
     print(df_review_unique.head(5))
     print(base.head(5))
     print(inventory_df.head(7))
-    print(sales_df.head(7))
+    print(sales_df.head(20))
