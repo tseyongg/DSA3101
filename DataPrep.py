@@ -54,10 +54,17 @@ df_review = df_5core[['asin', 'reviewerID', 'overall', 'unixReviewTime', 'review
 # Hence, we will remove duplicate products based on `asin`, keeping only the first occurence
 df_meta = df_meta.drop_duplicates(subset='asin', keep='first')
 
+# As 5core contains user reviews for products, there will be duplicates of `asin` as each product can have multiple reviews
+# We will remove duplicates based on `image` instead
+df_5core['image_str'] = df_5core['image'].astype(str)  # Create helper column that converts list to string
+df_5core = df_5core.drop_duplicates(subset=['image_str'])  # Drop duplicates
+df_5core = df_5core.drop(columns=['image_str'])  # Remove helper column
 
 # Remove duplicates from df_review
 df_review_unique = df_review.drop_duplicates(subset=['asin', 'reviewer_id', 'rating', 'unix_timestamp'])
 
+# Convert 'reviewTime' to datetime in df_5core
+df_5core['reviewTime'] = pd.to_datetime(df_5core['reviewTime'], errors='coerce')
 
 # Drop irrelevant 'date' column (contains no date information)
 df_meta = df_meta.drop(columns=['date'])
@@ -67,6 +74,15 @@ columns_to_drop = na_percentage[na_percentage > 80].index
 # Drop the columns with more than 80% NaN values as they are likely to be useless in analysis
 df_meta = df_meta.drop(columns=columns_to_drop)
 
+# Drop irrelevant columns in 5core (not needed in analysis)
+df_5core = df_5core.drop(columns=['unixReviewTime', 'vote'])
+
+# ========================================================
+#                FUNCTION FOR CLEANED DATA
+# ========================================================
+
+def cleaned_5core():
+    return df_5core
 
 # ========================================================
 #                   DATA TRANSFORMATIONS

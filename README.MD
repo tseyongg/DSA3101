@@ -5,9 +5,11 @@ We have developed an AI-powered platform which enables real-time product customi
 
 ## Set-Up
 
-### Install the required packages from `requirements.txt`
+### Install the required packages
 ```shell
-pip install -r requirements.txt
+Open the py files using IDLE (right click and Edit with IDLE)
+For Mac users: Open the `package_installer_mac.py` and run the file
+For Windows users: Open the `package_installer_windows.py` and run the file
 ```
 
 ### Clone the repository to your computer  
