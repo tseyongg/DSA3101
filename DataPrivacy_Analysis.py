@@ -40,7 +40,7 @@ def is_full_name(name):
     return all(re.match(r"^[A-Za-z-]+$", part) for part in parts)
 
 # Drop duplicate names
-df_5core_names = df_5core.drop_duplicates(subset='reviewerName')
+df_5core_names = df_5core.drop_duplicates(subset='reviewerName').copy()
 
 # Apply PII detection function for reviewer names
 df_5core_names['potential_PII_name'] = df_5core_names['reviewerName'].apply(is_full_name)
