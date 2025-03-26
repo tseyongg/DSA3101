@@ -78,13 +78,6 @@ df_meta = df_meta.drop(columns=columns_to_drop)
 df_5core = df_5core.drop(columns=['unixReviewTime', 'vote'])
 
 # ========================================================
-#                FUNCTION FOR CLEANED DATA
-# ========================================================
-
-def cleaned_5core():
-    return df_5core
-
-# ========================================================
 #                   DATA TRANSFORMATIONS
 # ========================================================
 
