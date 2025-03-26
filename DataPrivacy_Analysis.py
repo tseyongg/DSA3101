@@ -20,6 +20,10 @@ df_5core = cleaned_5core()
 # Function to check if a name is likely a full name
 def is_full_name(name):
     name = str(name).strip()
+
+    # Ensure the name doesn't end with "Consumer" or "Customer"
+    if name.split()[-1] in ["Consumer", "Customer"]:
+        return False
     
     # Ensure at least two words as it is likely a full name (excluding initials like "B.")
     parts = name.split()
@@ -29,19 +33,22 @@ def is_full_name(name):
         return False
     
     # Check if the last word is an initial (e.g., "B.")
-    if re.match(r"^[A-Z]\.$", parts[-1]): 
+    if re.match(r"^[A-Z]\.?$", parts[-1]):  
         return False
 
     # Allow names with at least two alphabetic words
     return all(re.match(r"^[A-Za-z-]+$", part) for part in parts)
 
-# Apply PII detection function for reviewer names
-df_5core['potential_PII_name'] = df_5core['reviewerName'].apply(is_full_name)
+# Drop duplicate names
+df_5core_names = df_5core.drop_duplicates(subset='reviewerName')
 
-# Show PII names
-pii_names = df_5core[df_5core['potential_PII_name']]
-print("PII in reviewerName:")
-print(pii_names[['reviewerName']])
+# Apply PII detection function for reviewer names
+df_5core_names['potential_PII_name'] = df_5core_names['reviewerName'].apply(is_full_name)
+
+# Show sample of PII names
+pii_names = df_5core_names[df_5core_names['potential_PII_name']]
+print("Potential PII in reviewerName:")
+print(pii_names[['reviewerName']].head())
 
 ###########################################
 #                                         #
@@ -69,7 +76,7 @@ if pii_reviews.empty:
     print("No potential PII found in reviewText.")
 else:
     print("Potential PII in reviewText:")
-    print(pii_reviews[['reviewText']])
+    print(pii_reviews[['reviewText']].head())
 
 ###########################################
 #                                         #
@@ -126,7 +133,7 @@ def main(df_5core):
     exif_results = process_image_urls(df_5core)
 
     if exif_results:
-        print("EXIF Metadata from the analyzed images:")
+        print("EXIF Metadata from the analysed images:")
         for url, exif in exif_results:
             print(f"URL: {url}")
             print(f"EXIF: {exif}\n")
