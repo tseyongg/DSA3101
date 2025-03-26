@@ -36,7 +36,7 @@ fp_review = "AMAZON_FASHION_5core_meta.json.gz"
 df_5core = getDF_jsonl_gz(fp_review)
 
 # Extract the relevant columns and rename them to match the old format
-df_review = df_5core[['asin', 'reviewerID', 'overall', 'unixReviewTime']].rename(
+df_review = df_5core[['asin', 'reviewerID', 'overall', 'unixReviewTime', 'reviewText', 'reviewerName', 'image']].rename(
     columns={
         'reviewerID': 'reviewer_id',
         'overall': 'rating',
@@ -55,8 +55,8 @@ df_review = df_5core[['asin', 'reviewerID', 'overall', 'unixReviewTime']].rename
 df_meta = df_meta.drop_duplicates(subset='asin', keep='first')
 
 
-# Optional: Remove duplicates
-df_review_unique = df_review.drop_duplicates()
+# Remove duplicates from df_review
+df_review_unique = df_review.drop_duplicates(subset=['asin', 'reviewer_id', 'rating', 'unix_timestamp'])
 
 
 # Drop irrelevant 'date' column (contains no date information)
@@ -87,6 +87,14 @@ pd.set_option('display.max_colwidth', None)
 
 
 # ========================================================
+#                FUNCTION FOR CLEANED DATA
+# ========================================================
+
+def cleaned_5core():
+    return base
+
+
+# ========================================================
 #                   INVENTORY
 # ========================================================
 
@@ -98,7 +106,7 @@ ratings_by_asin = base.groupby('asin')['rating'].mean()
 
 np.random.seed(70)
 # Generate inventory data with more realistic distributions
-inventory_data2 = {
+inventory_data = {
     'asin': products,
     'base_price': np.random.uniform(10, 200, size=len(products)) * (0.8 + 0.4 * (ratings_by_asin.loc[products].values/5)),
     'stock_level': np.random.poisson(lam=30, size=len(products)),  # Poisson for stock (counts)
@@ -111,10 +119,10 @@ inventory_data2 = {
 # Storage cost (shape=2, scale=1): More skewed, most values between 0-5
 # Material cost (shape=10, scale=5): More symmetric, centered around 50
 
-inventory_df2 = pd.DataFrame(inventory_data2)
-inventory_df2['base_price'] = inventory_df2['base_price'].round(1)
-inventory_df2['storage_cost'] = inventory_df2['storage_cost'].round(1)
-inventory_df2['material_cost'] = inventory_df2['material_cost'].round(1)
+inventory_df = pd.DataFrame(inventory_data)
+inventory_df['base_price'] = inventory_df['base_price'].round(1)
+inventory_df['storage_cost'] = inventory_df['storage_cost'].round(1)
+inventory_df['material_cost'] = inventory_df['material_cost'].round(1)
 
 
 # ========================================================
@@ -138,7 +146,7 @@ product_customization = {asin: np.random.randint(0, 6) for asin in products}
 reviews_by_asin = {asin: base[base['asin'] == asin] for asin in products}
 
 # Pre-fetch all inventory data to avoid lookups inside the loop
-inventory_lookup = inventory_df2.set_index('asin')
+inventory_lookup = inventory_df.set_index('asin')
 
 # Process each product
 for asin in products:
@@ -196,6 +204,9 @@ sales_df = pd.DataFrame(sales_data)
 if __name__ == "__main__":
     # print(catalogue.columns.tolist())
     # print(catalogue_images.columns.tolist())
+    print(len(df_review_unique))
+    print(len(base))
+    print(df_review_unique.head(5))
     print(base.head(5))
-    print(inventory_df2.head(7))
+    print(inventory_df.head(7))
     print(sales_df.head(7))
