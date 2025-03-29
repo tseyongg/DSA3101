@@ -28,7 +28,8 @@ from io import BytesIO
 ## set Hugging Face API
 MODEL = "lllyasviel/sd-controlnet-canny"    
 API_URL = f"https://api-inference.huggingface.co/models/{MODEL}"
-HEADERS = {"Authorization": f"Bearer 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"}
+TOKEN = ""
+HEADERS = {"Authorization": f"Bearer {TOKEN}"}
 
 
 # function to call Hugging Face Model via API 
