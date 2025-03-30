@@ -1,6 +1,7 @@
 # Get required packages
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 import json
 import gzip
 from IPython.display import display
@@ -165,8 +166,8 @@ for asin in products:
     # Convert all timestamps at once
     sale_dates = pd.to_datetime(product_reviews['unix_timestamp'].values, unit='s')
 
-    # Compute the seasonality factor for each review using seasonality formula
-    seasonality_factor = 0.4 * np.sin(2 * np.pi * (sale_dates.month - 9) / 12) + 1.0
+    # Compute the seasonality factor for each review using seasonality formula. Intensify peaks around summer (Apr - June) and winter months (Nov - Jan)
+    seasonality_factor = 0.4 * np.abs(np.cos( 2 * np.pi * (sale_dates.month - 12) / 12)) + 1.0
 
     # Generate baseline sales count per review (normally distributed)
     baseline_sales_count = np.random.normal(loc=5, scale=3, size=num_reviews)
@@ -217,8 +218,9 @@ def add_seasonal_effects(sales_df):
     # Extract month from sale_date
     sales_df['month'] = sales_df['sale_date'].dt.month
     
-    # Compute the seasonality factor using the sine formula
-    sales_df['seasonality'] = 0.4 * np.sin(2 * np.pi * (sales_df['month'] - 9) / 12) + 1.0
+    # Compute the seasonality factor using the abs cos formula.
+    # Peaks around summer (Apr - June) and winter months (Nov - Jan)
+    sales_df['seasonality'] = 0.4 * np.abs(np.cos(2 * np.pi * (sales_df['month'] - 12) / 12)) + 1.0
     
     # Adjust the original quantity by the seasonality factor
     sales_df['quantity'] = (sales_df['quantity'] * sales_df['seasonality']).apply(np.round).astype(int)
@@ -226,10 +228,17 @@ def add_seasonal_effects(sales_df):
     # Ensure the adjusted quantity is at least 1
     sales_df['quantity'] = sales_df['quantity'].apply(lambda x: max(1, x))
     
-    # Drop helper columns
-    return sales_df.drop(columns=['month', 'seasonality'])
+    # Drop seasonality columns
+    return sales_df.drop(columns=['seasonality'])
 
 sales_df = add_seasonal_effects(sales_df)
+new_sales_quantity_by_mth = sales_df.groupby('month')['quantity'].sum()
+quant_against_mth = new_sales_quantity_by_mth.plot() # Visualisation of Quantity for each Month
+quant_against_mth.set_ylabel("Quantity")
+quant_against_mth.set_xlabel("Month")
+plt.xticks(np.arange(1,13))
+plt.title("Quantity against Month (After Seasonality Emplification)")
+sales_df.drop(columns=['month']) # Drop month column after visualisation
 
 
 if __name__ == "__main__":
