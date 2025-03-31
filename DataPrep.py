@@ -148,7 +148,9 @@ sales_data = {
     'customization_level': [],
     'sale_price': [],
     'cost': [],
-    'profit': []
+    'profit': [],
+    'Size': [],
+    'Color': []
 }
 
 # Pre-calculate customization levels for each product
@@ -193,37 +195,44 @@ for asin in products:
     price_variations = np.random.uniform(0.99, 1.01, size=total_sales)
 
     # Left-skewed distribution for quantities (minimum 1, no upper bound)
+    np.random.seed(70)
     quantities = np.random.exponential(scale=1.0, size=total_sales)
     quantities = np.maximum(np.round(quantities).astype(int), 1)
     
     # Process each review and generate multiple sales records per review
     sale_index = 0
     for i, review_date in enumerate(sale_dates):
-        for _ in range(sales_count_per_review[i]):
+
+        size = product_reviews.iloc[i].get('Size')
+        color = product_reviews.iloc[i].get('Color')
+
+        # Generate variations of the review date for each sale (to the left/earlier only)
+        days_before = np.abs(np.random.normal(loc=3, scale=3, size=sales_count_per_review[i]))
+        # Set min thus not too far back (cap at 14 days before review)
+        days_before = np.minimum(days_before, 14)
+        # Gen sale dates that are slightly before the review date
+        varied_sale_dates = [review_date - pd.Timedelta(days=float(days)) for days in days_before]
+
+        for j in range(sales_count_per_review[i]):
             # Calculate price with variation
             price = base_price * customization_factor * price_variations[sale_index]
             cost = material_cost * customization_factor
             profit = price - cost
             
-            # Add to sales data
+            # Add to sales data with varied sale date
             sales_data['asin'].append(asin)
-            sales_data['sale_date'].append(review_date)
+            sales_data['sale_date'].append(varied_sale_dates[j])  # Using varied date instead of review date
             sales_data['quantity'].append(quantities[sale_index])
             sales_data['customization_level'].append(customization)
             sales_data['sale_price'].append(round(price, 1))
             sales_data['cost'].append(round(cost, 1))
             sales_data['profit'].append(round(profit, 1))
-            
+            sales_data['Size'].append(size)
+            sales_data['Color'].append(color)
+
             sale_index += 1
 
 sales_df = pd.DataFrame(sales_data)
-
-# Aggregate 'Size' and 'Color' from base reviews for sales**
-style_info = base.groupby('asin')[['Size', 'Color']].agg(
-    lambda x: x.mode()[0] if not x.mode().empty else None
-).reset_index()
-
-sales_df = sales_df.merge(style_info, on='asin', how='left')
 
 
 # ========================================================
