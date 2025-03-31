@@ -177,7 +177,6 @@ for asin in products:
 
     # Convert timestamps to datetime
     sale_dates = pd.to_datetime(product_reviews['unix_timestamp'].values, unit='s')
-<<<<<<< HEAD
     
     # Adjust baseline sales count by average rating, with a normal dist. as foundation
     product_avg_rating = product_reviews['rating'].mean()
@@ -186,16 +185,6 @@ for asin in products:
     
      # Apply seasonality factor to the baseline count and ensure a minimum of 1
     seasonality_factor = 0.2 * np.abs(np.cos( 2 * np.pi * (sale_dates.month - 12) / 12)) + 1.0
-=======
-
-    # Compute the seasonality factor for each review using seasonality formula. Intensify peaks around summer (Apr - June) and winter months (Nov - Jan)
-    seasonality_factor = 0.4 * np.abs(np.cos( 2 * np.pi * (sale_dates.month - 12) / 12)) + 1.0
-
-    # Generate baseline sales count per review (normally distributed)
-    baseline_sales_count = np.random.normal(loc=5, scale=3, size=num_reviews)
-
-    # Apply seasonality factor to the baseline count and ensure a minimum of 1
->>>>>>> 94cd8ef1e3c1cc33844e15377a024948c7c9dd00
     sales_count_per_review = np.maximum(np.round(baseline_sales_count * seasonality_factor), 1).astype(int)
 
     total_sales = int(sum(sales_count_per_review))
@@ -243,23 +232,9 @@ sales_df = sales_df.merge(style_info, on='asin', how='left')
 
 def add_seasonal_effects(sales_df):
     sales_df['month'] = sales_df['sale_date'].dt.month
-<<<<<<< HEAD
     sales_df['seasonality'] = 0.2 * np.abs(np.cos( 2 * np.pi * (sales_df['month'] - 12) / 12)) + 1.0
-=======
-    
-    # Compute the seasonality factor using the abs cos formula.
-    # Peaks around summer (Apr - June) and winter months (Nov - Jan)
-    sales_df['seasonality'] = 0.4 * np.abs(np.cos(2 * np.pi * (sales_df['month'] - 12) / 12)) + 1.0
-    
-    # Adjust the original quantity by the seasonality factor
->>>>>>> 94cd8ef1e3c1cc33844e15377a024948c7c9dd00
     sales_df['quantity'] = (sales_df['quantity'] * sales_df['seasonality']).apply(np.round).astype(int)
     sales_df['quantity'] = sales_df['quantity'].apply(lambda x: max(1, x))
-<<<<<<< HEAD
-=======
-    
-    # Drop seasonality columns
->>>>>>> 94cd8ef1e3c1cc33844e15377a024948c7c9dd00
     return sales_df.drop(columns=['seasonality'])
 
 sales_df = add_seasonal_effects(sales_df)
