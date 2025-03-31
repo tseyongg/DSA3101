@@ -26,10 +26,10 @@ def getDF_jsonl_gz(path):
 
 
 # original metadata
-# meta_url = 'https://drive.google.com/file/d/1hMd7FoqSBxce7rQxRTcXZ8G4mDXJB6Ry/view?usp=sharing'
-# download_url = 'https://drive.google.com/uc?export=download&id='+ meta_url.split('/')[-2]
+meta_url = 'https://drive.google.com/file/d/1hMd7FoqSBxce7rQxRTcXZ8G4mDXJB6Ry/view?usp=sharing'
+download_url = 'https://drive.google.com/uc?export=download&id='+ meta_url.split('/')[-2]
 output = 'file.jsonl'   # random name to feed the output argument
-# gdown.download(download_url, output, quiet=False)
+gdown.download(download_url, output, quiet=False)
 df_meta = pd.read_json(output, lines=True)
 
 # reviews
