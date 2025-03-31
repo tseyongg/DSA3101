@@ -1,4 +1,4 @@
-# Get required packages
+import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -32,12 +32,12 @@ output = 'file.jsonl'   # random name to feed the output argument
 gdown.download(download_url, output, quiet=False)
 df_meta = pd.read_json(output, lines=True)
 
-#reviews
+# reviews
 fp_review = "AMAZON_FASHION_5core_meta.json.gz"
 df_5core = getDF_jsonl_gz(fp_review)
 
-# Extract the relevant columns and rename them to match the old format
-df_review = df_5core[['asin', 'reviewerID', 'overall', 'unixReviewTime', 'reviewText', 'reviewerName', 'image']].rename(
+# Extract the relevant columns including 'style' and rename them to match the old format
+df_review = df_5core[['asin', 'reviewerID', 'overall', 'unixReviewTime', 'reviewText', 'reviewerName', 'image', 'style']].rename(
     columns={
         'reviewerID': 'reviewer_id',
         'overall': 'rating',
@@ -45,25 +45,37 @@ df_review = df_5core[['asin', 'reviewerID', 'overall', 'unixReviewTime', 'review
     }
 )
 
+# Flatten out the 'style' column
+# Ensure each entry in 'style' is a dictionary
+df_review['style'] = df_review['style'].apply(lambda x: x if isinstance(x, dict) else {})
+
+# Normalize the JSON in 'style' into separate columns
+style_df = pd.json_normalize(df_review['style'])
+
+# Clean up the column names if needed (remove extra spaces or colons)
+style_df.columns = [col.strip().replace(":", "") for col in style_df.columns]
+
+# Drop the original 'style' column and join the flattened columns back to df_review
+df_review = df_review.drop(columns=['style']).join(style_df)
+
+df_review = df_review.drop(columns=['Size Name', 'Style'], errors='ignore')
+
 
 # ========================================================
 #                   DATA CLEANING
 # ========================================================
 
 
-# `asin` refers to the ID of the product and is unique for each product
-# Hence, we will remove duplicate products based on `asin`, keeping only the first occurence
+# Remove duplicate products based on `asin`
 df_meta = df_meta.drop_duplicates(subset='asin', keep='first')
 
-# Remove duplicates from df_review
+# Remove duplicates from reviews
 df_review_unique = df_review.drop_duplicates(subset=['asin', 'reviewer_id', 'rating', 'unix_timestamp'])
 
-# Drop irrelevant 'date' column (contains no date information)
+# Drop irrelevant 'date' column and columns with >80% missing values
 df_meta = df_meta.drop(columns=['date'])
-# Calculate the percentage of NaN values in each column
 na_percentage = df_meta.isna().mean() * 100
 columns_to_drop = na_percentage[na_percentage > 80].index
-# Drop the columns with more than 80% NaN values as they are likely to be useless in analysis
 df_meta = df_meta.drop(columns=columns_to_drop)
 
 
@@ -71,62 +83,63 @@ df_meta = df_meta.drop(columns=columns_to_drop)
 #                   DATA TRANSFORMATIONS
 # ========================================================
 
-# Drop unnecessary columns (not needed for analysis)
+
+# Drop unnecessary columns
 catalogue = df_meta.drop(columns=['rank', 'imageURL'])
-# Drop rows where 'imageURLHighRes' is null
 catalogue = catalogue.dropna(subset=['imageURLHighRes'])
 
-# Create a separate table for image links, with original 'images' column pivoted out into different image types for each row of data
+# Create a separate table for image links
 links = df_meta["imageURLHighRes"].explode()
 catalogue_images = pd.DataFrame(df_meta['asin']).join(links)
 
-
+# Filter reviews to only include products in the catalogue
 base = df_review_unique[df_review_unique['asin'].isin(catalogue['asin'])]
 pd.set_option('display.max_colwidth', None)
 
 
 # ========================================================
-#                FUNCTION FOR CLEANED DATA
+#                ADD AVERAGE RATING FEATURE
 # ========================================================
 
-def cleaned_5core():
-    return base
+
+avg_rating = base.groupby('asin')['rating'].mean().reset_index().rename(columns={'rating': 'avg_rating'})
 
 
 # ========================================================
 #                   INVENTORY
 # ========================================================
 
+
 # Extract unique products from base table
 products = base['asin'].unique()
-
-# Pre-calculate all ratings at once
 ratings_by_asin = base.groupby('asin')['rating'].mean()
 
 np.random.seed(70)
-# Generate inventory data with more realistic distributions
+
 inventory_data = {
     'asin': products,
-    'base_price': np.random.uniform(10, 200, size=len(products)) * (0.8 + 0.4 * (ratings_by_asin.loc[products].values/5)),
+    'base_price': np.round(50 + 20 * (ratings_by_asin.loc[products].values - 3) 
+                             + np.random.uniform(-5, 5, size=len(products)), 1),  # Based on ratings and a normal dist.
     'stock_level': np.random.poisson(lam=30, size=len(products)),  # Poisson for stock (counts)
     'reorder_point': np.random.randint(5, 30, size=len(products)),
     'lead_time_days': np.random.lognormal(mean=1.5, sigma=0.6, size=len(products)).astype(int) + 1,  # Lognormal for lead times: right-skewed (many short deliveries, fewer long ones)
     'storage_cost': np.random.gamma(shape=2, scale=1, size=len(products)),  # Gamma for costs (always positive, right-skewed)
-    'material_cost': np.random.gamma(shape=10, scale=5, size=len(products))  # Gamma with different parameters
+    'material_cost': np.random.gamma(shape=5, scale=3, size=len(products))  # Gamma but slightly higher than storage costs, cause production
 }
-
-# Storage cost (shape=2, scale=1): More skewed, most values between 0-5
-# Material cost (shape=10, scale=5): More symmetric, centered around 50
 
 inventory_df = pd.DataFrame(inventory_data)
 inventory_df['base_price'] = inventory_df['base_price'].round(1)
 inventory_df['storage_cost'] = inventory_df['storage_cost'].round(1)
 inventory_df['material_cost'] = inventory_df['material_cost'].round(1)
 
+# Merge average rating into inventory**
+inventory_df = inventory_df.merge(avg_rating, on='asin', how='left')
+
 
 # ========================================================
 #                   SALES
 # ========================================================
+
 
 sales_data = {
     'asin': [],
@@ -138,18 +151,17 @@ sales_data = {
     'profit': []
 }
 
-# Pre-calculate customization levels for each asin
+# Pre-calculate customization levels for each product
 product_customization = {asin: np.random.randint(0, 6) for asin in products}
 
-# Group reviews by ASIN to avoid iterating through all reviews for each product
+# Group reviews by product
 reviews_by_asin = {asin: base[base['asin'] == asin] for asin in products}
 
-# Pre-fetch all inventory data to avoid lookups inside the loop
+# Pre-fetch inventory data for quick look-up
 inventory_lookup = inventory_df.set_index('asin')
 
-# Process each product
+# Process each product for sales simulation
 for asin in products:
-    # Get product data once
     base_price = inventory_lookup.loc[asin, 'base_price']
     material_cost = inventory_lookup.loc[asin, 'material_cost']
     customization = product_customization[asin]
@@ -157,39 +169,36 @@ for asin in products:
     
     # Get all reviews for this product
     product_reviews = reviews_by_asin[asin]
-    
+
     # Batch process all sales for this product
     num_reviews = len(product_reviews)
     if num_reviews == 0:
         continue
 
-    # Convert all timestamps at once
+    # Convert timestamps to datetime
     sale_dates = pd.to_datetime(product_reviews['unix_timestamp'].values, unit='s')
-
-    # Compute the seasonality factor for each review using seasonality formula. Intensify peaks around summer (Apr - June) and winter months (Nov - Jan)
-    seasonality_factor = 0.4 * np.abs(np.cos( 2 * np.pi * (sale_dates.month - 12) / 12)) + 1.0
-
-    # Generate baseline sales count per review (normally distributed)
-    baseline_sales_count = np.random.normal(loc=5, scale=3, size=num_reviews)
-
-    # Apply seasonality factor to the baseline count and ensure a minimum of 1
+    
+    # Adjust baseline sales count by average rating, with a normal dist. as foundation
+    product_avg_rating = product_reviews['rating'].mean()
+    baseline_sales_count = np.maximum(np.round(5 * (product_avg_rating / 3) 
+                                 + np.random.normal(loc=0, scale=0.2, size=num_reviews)), 1).astype(int)
+    
+     # Apply seasonality factor to the baseline count and ensure a minimum of 1
+    seasonality_factor = 0.2 * np.abs(np.cos( 2 * np.pi * (sale_dates.month - 12) / 12)) + 1.0
     sales_count_per_review = np.maximum(np.round(baseline_sales_count * seasonality_factor), 1).astype(int)
 
-    # # Normally distributed sales counts (minimum 1, no upper bound)
-    # sales_count_per_review = np.random.normal(loc=5, scale=3, size=num_reviews)
-    # sales_count_per_review = np.maximum(np.round(sales_count_per_review).astype(int), 1)
-    total_sales = sum(sales_count_per_review)
+    total_sales = int(sum(sales_count_per_review))
     
-    # Uniform distribution for price variation
-    price_variations = np.random.uniform(0.9, 1.1, size=total_sales)
+    # Uniform distribution for price variation, accounting for occasional discounts from vouvhers, sales etc.
+    price_variations = np.random.uniform(0.99, 1.01, size=total_sales)
+
     # Left-skewed distribution for quantities (minimum 1, no upper bound)
-    quantities = np.random.exponential(scale=3, size=total_sales)
+    quantities = np.random.exponential(scale=1.0, size=total_sales)
     quantities = np.maximum(np.round(quantities).astype(int), 1)
-    
     
     # Process each review and generate multiple sales records per review
     sale_index = 0
-    for i, review in enumerate(sale_dates):
+    for i, review_date in enumerate(sale_dates):
         for _ in range(sales_count_per_review[i]):
             # Calculate price with variation
             price = base_price * customization_factor * price_variations[sale_index]
@@ -198,7 +207,7 @@ for asin in products:
             
             # Add to sales data
             sales_data['asin'].append(asin)
-            sales_data['sale_date'].append(review)
+            sales_data['sale_date'].append(review_date)
             sales_data['quantity'].append(quantities[sale_index])
             sales_data['customization_level'].append(customization)
             sales_data['sale_price'].append(round(price, 1))
@@ -209,26 +218,23 @@ for asin in products:
 
 sales_df = pd.DataFrame(sales_data)
 
+# Aggregate 'Size' and 'Color' from base reviews for sales**
+style_info = base.groupby('asin')[['Size', 'Color']].agg(
+    lambda x: x.mode()[0] if not x.mode().empty else None
+).reset_index()
+
+sales_df = sales_df.merge(style_info, on='asin', how='left')
+
 
 # ========================================================
 #              ADD SEASONAL EFFECTS TO QUANTITY
 # ========================================================
 
 def add_seasonal_effects(sales_df):
-    # Extract month from sale_date
     sales_df['month'] = sales_df['sale_date'].dt.month
-    
-    # Compute the seasonality factor using the abs cos formula.
-    # Peaks around summer (Apr - June) and winter months (Nov - Jan)
-    sales_df['seasonality'] = 0.4 * np.abs(np.cos(2 * np.pi * (sales_df['month'] - 12) / 12)) + 1.0
-    
-    # Adjust the original quantity by the seasonality factor
+    sales_df['seasonality'] = 0.2 * np.abs(np.cos( 2 * np.pi * (sales_df['month'] - 12) / 12)) + 1.0
     sales_df['quantity'] = (sales_df['quantity'] * sales_df['seasonality']).apply(np.round).astype(int)
-    
-    # Ensure the adjusted quantity is at least 1
     sales_df['quantity'] = sales_df['quantity'].apply(lambda x: max(1, x))
-    
-    # Drop seasonality columns
     return sales_df.drop(columns=['seasonality'])
 
 sales_df = add_seasonal_effects(sales_df)
@@ -241,12 +247,79 @@ plt.title("Quantity against Month (After Seasonality Emplification)")
 sales_df.drop(columns=['month']) # Drop month column after visualisation
 
 
+# ========================================================
+#              ADD PRICE-QUANTITY RELATIONSHIP
+# ========================================================
+
+def add_price_quantity_relationship(sales_df):
+    """
+    Scale quantity based on sale_price - simple direct relationship
+    Higher price = lower quantity
+    """
+    # Simple price factor - inverse relationship between price and quantity
+    # Higher prices mean lower quantities
+    sales_df['price_factor'] = 100 / (sales_df['sale_price'] + 10)
+    
+    # Apply the price factor to quantity 
+    sales_df['quantity'] = (sales_df['quantity'] * sales_df['price_factor']).apply(np.round).astype(int)
+    
+    # Ensure minimum quantity is 1
+    sales_df['quantity'] = sales_df['quantity'].apply(lambda x: max(1, x))
+    
+    # Drop intermediate column
+    sales_df = sales_df.drop(columns=['price_factor'])
+    
+    # Rename original columns for clarity, they are per-unit values
+    sales_df = sales_df.rename(columns={
+        'sale_price': 'unit_price',
+        'cost': 'unit_cost',
+        'profit': 'unit_profit'
+    })
+    
+    # Ensure sale_price, cost, and profit now is per order
+    # Current columns represent per-unit values, thus we multiply by quantity
+    sales_df['sale_price'] = sales_df['unit_price'] * sales_df['quantity']
+    sales_df['cost'] = sales_df['unit_cost'] * sales_df['quantity']
+    sales_df['profit'] = sales_df['sale_price'] - sales_df['cost']
+    
+    # Round values
+    sales_df['sale_price'] = sales_df['sale_price'].round(1)
+    sales_df['cost'] = sales_df['cost'].round(1)
+    sales_df['profit'] = sales_df['profit'].round(1)
+    
+    return sales_df
+
+# Apply price-quantity relationship
+sales_df = add_price_quantity_relationship(sales_df)
+
+def plot_graph():
+
+    new_sales_quantity_by_mth = sales_df.groupby('month')['quantity'].sum()
+    quant_against_mth = new_sales_quantity_by_mth.plot() # Visualisation of Quantity for each Month
+    quant_against_mth.set_ylabel("Quantity")
+    quant_against_mth.set_xlabel("Month")
+    plt.xticks(np.arange(1,13))
+    plt.title("Quantity against Month (After Seasonality Emplification)")
+    plt.show()
+    sales_df.drop(columns=['month'], inplace=True)
+
+# ========================================================
+#                FUNCTION TO RETURN CLEANED DATA
+# ========================================================
+
+def cleaned_5core():
+    return base
+
+# ========================================================
+#                   MAIN EXECUTION
+# ========================================================
+
 if __name__ == "__main__":
-    # print(catalogue.columns.tolist())
-    # print(catalogue_images.columns.tolist())
-    print(len(df_review_unique))
-    print(len(base))
-    print(df_review_unique.head(5))
+    print("Base sample:")
     print(base.head(5))
+    print(base.columns.tolist())
+    print("Inventory sample:")
     print(inventory_df.head(7))
-    print(sales_df.head(20))
+    print("Sales sample:")
+    print(sales_df.head(30))
+    plot_graph()
