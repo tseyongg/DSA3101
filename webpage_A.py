@@ -139,7 +139,7 @@ with right:
             else:
                 st.error("❌ Invalid image input.")
         else:
-            placeholder.text("[Please input your image and/or text prompts.]")
+            placeholder.text("[Please ensure both image and text prompt have been input.]")
     
 
 ##########################################################################################################
