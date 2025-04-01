@@ -1,35 +1,70 @@
+# import required packages/libraries
 import streamlit as st
-import torch
-import cv2
-import numpy as np
-from PIL import Image
 import requests
+import base64
+from PIL import Image
 from io import BytesIO
-
-from diffusers.utils import load_image
-from diffusers.utils import make_image_grid, load_image
 
 
 ############################################################################
 #########           HOW TO LAUNCH & TEST THE WEBPAGE           #############
-# 1.
-#   type  `cd Desktop\DSA3101` in your terminal
-#   to navigate to the cloned repo locally, if not cloned yet,
-#   follow the README instructions on Github
-#   then type `streamlit run .\DSA3101_web_A.py` in your terminal to launch
-# 2.
-#   after the webpage launches,
+# 1. Change directory and launch of webpage
+#   Type  `cd Desktop\DSA3101` in your terminal
+#   to navigate to the cloned repo locally.
+#   If not cloned yet, follow the README instructions on Github.
+#   Then type `streamlit run webpage_B.py` in your terminal to launch webpage
+# 2. Input image (URL or upload)
+#   After the webpage launches,
 #   test using this URL below/just use any random image u have:
 #   https://images-na.ssl-images-amazon.com/images/I/41SyGjt4KdL.jpg
-# 3.
-#   enter some random text for the customisation prompt, then
-#   click the 'Generate Customised Image' button, 
-#   the text below the button differs if u r missing any input image/prompt
+# 3. Customisation text
+#   Enter some random text for the customisation prompt, then
+#   click the 'Generate Customised Image' button. 
+#   The text below the button differs if there are missing required inputs.
 ############################################################################
 ############################################################################
 
 
 
+## set Hugging Face API
+MODEL1 = "lllyasviel/sd-controlnet-canny"    
+MODEL2 = "stabilityai/stable-diffusion-xl-refiner-1.0"
+API_URL = f"https://api-inference.huggingface.co/models/{MODEL1}"
+TOKEN = ""
+HEADERS = {"Authorization": f"Bearer {TOKEN}"}
+
+
+## function to call Hugging Face Model via API 
+def generate_custom_image(prompt, image):
+    # convert to Base64 image
+    buffered = BytesIO()
+    image.save(buffered, format="PNG")
+    encoded_image = base64.b64encode(buffered.getvalue()).decode("utf-8")
+    # API request payload
+    payload = {
+        "image": encoded_image,  # Send image in Base64 format
+        "inputs": prompt
+    }
+    # Make the request
+    response = requests.post(API_URL, headers=HEADERS, json=payload, timeout=120)
+    if response.status_code == 200:
+        return Image.open(BytesIO(response.content))  # Convert response bytes to an image
+    else:
+        st.error(f"❌ API Error {response.status_code}: {response.text}")
+        return None
+
+
+
+# create the page title
+st.set_page_config(page_title="AI Product Customisation B", layout="wide",
+                   menu_items={
+        'Get Help': 'https://www.extremelycoolapp.com/help',
+        'Report a bug': "https://www.extremelycoolapp.com/bug",
+        'About': "# This is a header. This is an *extremely* cool app!"
+    })
+
+
+st.divider()
 st.title("AI-Driven Merchandise Customisation")
 # st.write("Not satisfied with the base product you want? Simply follow the steps below and try customising it to your taste!")
 st.markdown('''
@@ -83,21 +118,30 @@ if step1 != "Select" and (image_link or image_upload):
             st.error("Please mention what kind of customisations you want.")
         else:
             # proceed with customisation
-            # model not implemented in yet
             st.success("Your customisation is in progress!")
             st.write(f"Image Source: {step1}")
             if image_link:
                 st.write(f"Image Link: {image_link}")
             if image_upload:
                 st.image(image_upload, caption="Uploaded Image", use_column_width=True)
+
             st.write(f"Customisation Details: {customisation_text}")
+
+            if img:
+                image_result = generate_custom_image(customisation_text, img)
+                if image_result:
+                    st.image(image_result, caption="Custom Product Image")
+                else:
+                    st.error("❌ Failed to generate customized image.")
+
+
 else:
     if step1 != "Select":
         st.warning("Please provide an image before proceeding to customisation.")
 
 
 
-#################### feedback portion
+## feedback portion
 
 # st.write(" # ")     # line break
 st.divider()

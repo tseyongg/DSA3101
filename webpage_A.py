@@ -8,26 +8,28 @@ from io import BytesIO
 
 ############################################################################
 #########           HOW TO LAUNCH & TEST THE WEBPAGE           #############
-# 1.
-#   type  `cd Desktop\DSA3101` in your terminal
-#   to navigate to the cloned repo locally, if not cloned yet,
-#   follow the README instructions on Github
-#   then type `streamlit run .\DSA3101_web_B.py` in your terminal to launch
-# 2.
-#   after the webpage launches,
+# 1. Change directory and launch of webpage
+#   Type  `cd Desktop\DSA3101` in your terminal
+#   to navigate to the cloned repo locally.
+#   If not cloned yet, follow the README instructions on Github.
+#   Then type `streamlit run webpage_A.py` in your terminal to launch webpage
+# 2. Input image (URL or upload)
+#   After the webpage launches,
 #   test using this URL below/just use any random image u have:
 #   https://images-na.ssl-images-amazon.com/images/I/41SyGjt4KdL.jpg
-# 3.
-#   enter some random text for the customisation prompt, then
-#   click the 'Generate Customised Image' button, 
-#   the text below the button differs if u r missing any input image/prompt
+# 3. Customisation text
+#   Enter some random text for the customisation prompt, then
+#   click the 'Generate Customised Image' button. 
+#   The text below the button differs if there are missing required inputs.
 ############################################################################
 ############################################################################
+
 
 
 ## set Hugging Face API
-MODEL = "lllyasviel/sd-controlnet-canny"    
-API_URL = f"https://api-inference.huggingface.co/models/{MODEL}"
+MODEL1 = "lllyasviel/sd-controlnet-canny"    
+MODEL2 = "stabilityai/stable-diffusion-xl-refiner-1.0"
+API_URL = f"https://api-inference.huggingface.co/models/{MODEL2}"
 TOKEN = ""
 HEADERS = {"Authorization": f"Bearer {TOKEN}"}
 
@@ -54,7 +56,7 @@ def generate_custom_image(prompt, image):
     
 
 # create the page title
-st.set_page_config(page_title="AI Product Customisation B", layout="wide",
+st.set_page_config(page_title="AI Product Customisation A", layout="wide",
                    menu_items={
         'Get Help': 'https://www.extremelycoolapp.com/help',
         'Report a bug': "https://www.extremelycoolapp.com/bug",
@@ -137,21 +139,21 @@ with right:
             else:
                 st.error("❌ Invalid image input.")
         else:
-            placeholder.text("[Please input your image and/or text prompts.]")
+            placeholder.text("Please ensure both image and text prompt have been input.")
     
 
 ##########################################################################################################
 
-st.write(" # ")     # multiple line breaks
+st.write(" # ")     # line breaks
 st.divider()
-st.write("#### If possible, please feedback whether you like the custom product 😀")
+st.write("#### Please leave a feedback on whether you like the custom product 😀 so we can improve!")
 
 
 bottomleft, bottomright = st.columns([1, 1])
 
 # Feedback rating (slider from 0 to 5 stars)
 with bottomleft:
-    rating = st.slider("Rate the generated image:", 1, 5 ,3)
+    rating = st.slider("Rate the generated image:", 1, 5 ,4)
     
 # User feedback response       
 with bottomright:
@@ -160,9 +162,3 @@ with bottomright:
                             placeholder="What improvements would you like to see?",
                             height=140,
                             max_chars=250)
-
-
-
-
-
-
