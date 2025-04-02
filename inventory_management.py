@@ -15,7 +15,7 @@ for i in products:
     con_val = quant * storage * mat
     quant_by_product.loc[quant_by_product['asin'] == i , 'consumption_value'] = round(con_val,1)
 
-quant_by_product = quant_by_product.sort_values(by=['consumption_value'], ascending = False).reset_index()
+quant_by_product = quant_by_product.sort_values(by=['consumption_value'], ascending = False).reset_index(drop=True)
 total_con_val = round(quant_by_product['consumption_value'].sum(),1)
 quant_by_product["percent_consumption_value"] = ((quant_by_product["consumption_value"].values / total_con_val) * 100).round(2)
 
@@ -99,7 +99,7 @@ for i in products:
     EOQ = math.sqrt((2 * demand * mat) / storage)
     pred_demand_by_asin.loc[pred_demand_by_asin['asin'] == i , 'Economic_Order_Quantity'] = round(EOQ)
 
-Economic_Order_Quantity_df = pred_demand_by_asin.sort_values(by=['Economic_Order_Quantity'], ascending = False).reset_index()
+Economic_Order_Quantity_df = pred_demand_by_asin.sort_values(by=['Economic_Order_Quantity'], ascending = False).reset_index(drop=True)
 
 # With the EOQ, we are able to determine the optimal amount of product to order in order to maximise cost. Improving inventory management.
 
