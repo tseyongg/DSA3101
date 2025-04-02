@@ -162,11 +162,7 @@ To maintain high fidelity to the original image, the hyperparameters are set to 
 
 Without ControlNets, achieving close adherence to the original image becomes challenging. Although adjusting the negative prompts hyperparameter can improve fidelity, it is often tedious and requires careful tuning. Example: negative_prompt = "ugly, deformed, disfigured, poor details, bad anatomy"
 
-![Image](https://github.com/user-attachments/assets/16ad3e1f-b01c-43b8-b273-49c6abeb8f25)
-![Image](https://github.com/user-attachments/assets/d1b5260c-a770-4731-9c22-79f297e237f7)
-![Image](https://github.com/user-attachments/assets/9db02c1f-56ba-413d-827f-403454d75cf2)
-![Image](https://github.com/user-attachments/assets/e835341b-85b1-4cfe-a778-23a295847ea6)
-![Image](https://github.com/user-attachments/assets/4d1de954-3947-43ab-a9e8-a38609f41e04)
+![Image](https://github.com/user-attachments/assets/9db02c1f-56ba-413d-827f-403454d75cf2)b
 
 ### Canny Edge Detection (BEST)
 Average runtime: 25s  
@@ -174,14 +170,27 @@ https://huggingface.co/lllyasviel/sd-controlnet-canny
 
 This model uses Canny Edge Detection as ControlNet to guide the generated image. The model detects the edges of the original image and generates the image with the edges as guide. The result is a high fidelity customised image. This model runs the fastest among all models.
 
+![Image](https://github.com/user-attachments/assets/e835341b-85b1-4cfe-a778-23a295847ea6)c
+
 ### Midas Depth Estimation
 Average runtime: 1 min  
 https://huggingface.co/lllyasviel/sd-controlnet-depth
 
 This model uses Midas Depth Estimation as ControlNet to guide the generated image. The model detects the depth of the original image and generates the image with the depth as guide. The result is a high fidelity customised image. This model runs the slower than the Canny Edge model.
 
+![Image](https://github.com/user-attachments/assets/16ad3e1f-b01c-43b8-b273-49c6abeb8f25)d
+
 ### HED Edge Detection
 Average runtime: 1 min  
 https://huggingface.co/lllyasviel/sd-controlnet-hed
 
 This model uses HED Edge Detection as ControlNet to guide the generated image. Similar to the Canny Edge model, this model also detects the edges of the original image and generates the image with the edges as guide. The result is a high fidelity customised image. However, this model runs slower than the Canny Edge model.
+
+![Image](https://github.com/user-attachments/assets/4d1de954-3947-43ab-a9e8-a38609f41e04)h
+
+### M-LSD Straight Line Detection
+https://huggingface.co/lllyasviel/sd-controlnet-mlsd
+
+The M-LSD Straight Line ControlNet is built to detect straight lines. It performs poorly on images with non-straight edges. As such it is not recommended to use this model.
+
+![Image](https://github.com/user-attachments/assets/d1b5260c-a770-4731-9c22-79f297e237f7)m
