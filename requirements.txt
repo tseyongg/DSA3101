@@ -11,6 +11,6 @@ Pillow==11.1.0
 Requests==2.32.3
 scikit_learn==1.6.1
 streamlit==1.43.2
-torch==2.6.0+cu126
+torch==2.6.0
 transformers==4.49.0
 xgboost==3.0.0
