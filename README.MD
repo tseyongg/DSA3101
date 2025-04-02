@@ -289,15 +289,11 @@ An API access key has to be taken from the Hugging Face website in order to run 
 
 **To obtain the API key, follow these instructions:**
 
-a. First create a Hugging Face account. 
-
-b. After creation, click on your profile picture on the top right hand side corner of the page, and go to *"Access Tokens"*.
-
-c. Click on *"+ Create new token"*, and navigate to *"Write"* for token type.
-
-d. Choose token name of choice and press *"Create token"*.
-
-e. Copy the generated token ("hf_xxxxxxxxxxxxxxxxxxxxxxxxxxx") into the `TOKEN` variable of webpages A and B (line 34).
+    a. First create a Hugging Face account.  
+    b. After creation, click on your profile picture on the top right hand side corner of the page, and go to *"Access Tokens"*.  
+    c. Click on *"+ Create new token"*, and navigate to *"Write"* for token type.  
+    d. Choose token name of choice and press *"Create token"*.  
+    e. Copy the generated token ("hf_xxxxxxxxxxxxxxxxxxxxxxxxxxx") into the `TOKEN` variable of webpages A and B (line 34).  
 
 
 The set-up to run the webpages is now complete.
