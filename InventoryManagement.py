@@ -1,4 +1,6 @@
+import math
 from DataPrep import products, sales_df, inventory_df
+from demand_forecast import prepare_features, train_demand_model
 
 # ========================================================
 #             Creation of ABC Analysis Dataframe
@@ -61,6 +63,45 @@ for prod in products:
 
 # We increase the reorder_point for group A items to fit the Just-in-Case framework since they have high sales quantity
 # On the opposite hand, we lower the reorder_point for group C items since their sales quantity is low. Just-in-Time framework.
+
+# ==============================================================================
+#          Economic Order Quantity Inventory Management Strategy
+# ==============================================================================
+
+# Load data and train model once
+print("Loading data and training demand forecast model...")
+agg_features = prepare_features(sales_df, inventory_df)
+model, X = train_demand_model(agg_features)
+print("Model ready")
+
+temp = X.copy()
+
+asin_cols = temp.columns[12:42]
+temp.columns[12:42][1][5:]
+
+num_asin = asin_cols.size
+n = temp.shape[0]
+temp['asin'] = 'n' # place holder value
+
+for j in range(num_asin):
+    curr_col = asin_cols[j]
+    curr = asin_cols[j][5:]
+    temp.loc[temp[curr_col] == 1 , 'asin'] = curr
+
+temp.loc[temp['asin'] == 'n', 'asin'] = 'B000K2PJ4K' 
+temp['predicted_demand'] = model.predict(X)
+pred_demand_by_asin = temp.groupby('asin')['predicted_demand'].sum().reset_index() # Get predicted demand based on asin
+
+for i in products:
+    demand = pred_demand_by_asin.loc[pred_demand_by_asin['asin'] == i , 'predicted_demand'].values[0]
+    storage = inventory_df.loc[inventory_df['asin'] == i , 'storage_cost'].values[0]
+    mat = inventory_df.loc[inventory_df['asin'] == i , 'material_cost'].values[0]
+    EOQ = math.sqrt((2 * demand * mat) / storage)
+    pred_demand_by_asin.loc[pred_demand_by_asin['asin'] == i , 'Economic_Order_Quantity'] = round(EOQ)
+
+Economic_Order_Quantity_df = pred_demand_by_asin.sort_values(by=['Economic_Order_Quantity'], ascending = False).reset_index()
+
+# With the EOQ, we are able to determine the optimal amount of product to order in order to maximise cost. Improving inventory management.
 
 # ========================================================
 #                   MAIN EXECUTION
