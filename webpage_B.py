@@ -4,6 +4,7 @@ import requests
 import base64
 from PIL import Image
 from io import BytesIO
+import io
 
 
 ############################################################################
@@ -27,31 +28,85 @@ from io import BytesIO
 
 
 ## set Hugging Face API
-MODEL1 = "lllyasviel/sd-controlnet-canny"    
-MODEL2 = "stabilityai/stable-diffusion-xl-refiner-1.0"
-API_URL = f"https://api-inference.huggingface.co/models/{MODEL1}"
-TOKEN = ""
-HEADERS = {"Authorization": f"Bearer {TOKEN}"}
+# MODEL1 = "lllyasviel/sd-controlnet-canny"    
+# MODEL2 = "stabilityai/stable-diffusion-xl-refiner-1.0"
+# API_URL = f"https://api-inference.huggingface.co/models/{MODEL1}"
+# TOKEN = ""
+# HEADERS = {"Authorization": f"Bearer {TOKEN}"}
 
 
-## function to call Hugging Face Model via API 
-def generate_custom_image(prompt, image):
-    # convert to Base64 image
+
+from huggingface_hub import InferenceClient
+
+client = InferenceClient(
+    provider="hf-inference",
+    api_key="",
+)
+
+# # output is a PIL.Image object
+# image = client.image_to_image(
+#     "cat.png",
+#     prompt="Turn the cat into a tiger.",
+#     model="lllyasviel/sd-controlnet-canny",
+# )
+
+
+
+
+# API_URL = "https://router.huggingface.co/hf-inference/models/lllyasviel/sd-controlnet-canny"
+# headers = {"Authorization": "Bearer hf_xxx"}
+
+# def query(payload):
+#     with open(payload["inputs"], "rb") as f:
+#         img = f.read()
+#         payload["inputs"] = base64.b64encode(img).decode("utf-8")
+#     response = requests.post(API_URL, headers=headers, json=payload)
+#     return response.content
+
+
+
+
+## encode image to base64
+def encode_image(image):
+    """Convert PIL Image to Base64 string."""
     buffered = BytesIO()
-    image.save(buffered, format="PNG")
-    encoded_image = base64.b64encode(buffered.getvalue()).decode("utf-8")
-    # API request payload
-    payload = {
-        "image": encoded_image,  # Send image in Base64 format
-        "inputs": prompt
-    }
-    # Make the request
-    response = requests.post(API_URL, headers=HEADERS, json=payload, timeout=120)
-    if response.status_code == 200:
-        return Image.open(BytesIO(response.content))  # Convert response bytes to an image
-    else:
-        st.error(f"❌ API Error {response.status_code}: {response.text}")
-        return None
+    image.save(buffered, format="PNG")  # Save image to a buffer
+    return base64.b64encode(buffered.getvalue()).decode("utf-8")
+
+# image_bytes = query({
+#     "inputs": "cat.png",
+#     "parameters": {
+#         "prompt": "Turn the cat into a tiger."
+#     }
+# })
+
+# You can access the image with PIL.Image for example
+# import io
+# from PIL import Image
+# image = Image.open(io.BytesIO(image_bytes))
+
+
+
+
+
+# ## function to call Hugging Face Model via API 
+# def generate_custom_image(prompt, image):
+#     # convert to Base64 image
+#     buffered = BytesIO()
+#     image.save(buffered, format="PNG")
+#     encoded_image = base64.b64encode(buffered.getvalue()).decode("utf-8")
+#     # API request payload
+#     payload = {
+#         "image": encoded_image,  # Send image in Base64 format
+#         "inputs": prompt
+#     }
+#     # Make the request
+#     response = requests.post(API_URL, headers=HEADERS, json=payload, timeout=120)
+#     if response.status_code == 200:
+#         return Image.open(BytesIO(response.content))  # Convert response bytes to an image
+#     else:
+#         st.error(f"❌ API Error {response.status_code}: {response.text}")
+#         return None
 
 
 
@@ -98,13 +153,15 @@ def load_image_url(url):
     return None
 
 if image_link:
-    img = load_image_url(image_link)
+    img = load_image_url(image_link) # output is img
     if img:
         st.image(img, caption = "Image ready", use_container_width = False)
 
+
 elif image_upload:
-    img = Image.open(image_upload)
+    img = Image.open(image_upload) # output is img
     st.image(img, caption = "Image ready", use_container_width=False)
+
 
 
 # step 3: Customisation details - only shown if step 2 has been filled
@@ -127,10 +184,20 @@ if step1 != "Select" and (image_link or image_upload):
 
             st.write(f"Customisation Details: {customisation_text}")
 
-            if img:
-                image_result = generate_custom_image(customisation_text, img)
-                if image_result:
-                    st.image(image_result, caption="Custom Product Image")
+            if img:                
+                
+                # if image_upload: # convert into bytes for function to read
+                #     image_link = encode_image(img)
+
+                image_bytes = client.image_to_image(
+                    image=image_link,
+                    prompt=customisation_text,
+                    model="lllyasviel/sd-controlnet-canny",
+                    )
+
+
+                if image_bytes:
+                    st.image(image_bytes, caption="Custom Product Image")
                 else:
                     st.error("❌ Failed to generate customized image.")
 
@@ -138,6 +205,10 @@ if step1 != "Select" and (image_link or image_upload):
 else:
     if step1 != "Select":
         st.warning("Please provide an image before proceeding to customisation.")
+
+
+
+
 
 
 
