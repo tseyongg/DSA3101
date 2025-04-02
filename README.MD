@@ -70,7 +70,7 @@ This table is a subset of the data in which all users and items have at least 5 
 | `reviewTime`     | Object    | Time of the review                                          |
 | `reviewerID`     | Object    | ID of the reviewer                                          |
 | `asin`           | Object    | ID of the product                                           |
-| `style`          | Object    | Order status (Pending, Shipped, etc.)                       |
+| `style`          | Object    | Dict containing size, color of product                      |
 | `reviewerName`   | Object    | Name of the reviewer                                        |
 | `reviewText`     | Object    | Text of the review                                          |
 | `summary`        | Object    | Summary of the review                                       |
