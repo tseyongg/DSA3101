@@ -145,11 +145,11 @@ def train_demand_model(agg_features):
     acceptable_accuracy = acceptable_pred.mean() * 100
     print(f"Predictions within 100-165% of actual: {acceptable_accuracy:.2f}%")
         
-    return model
+    return model, X
 
 
 if __name__ == "__main__":
     catalogue, sales_df, inventory_df = load_data()
     agg_features = prepare_features(sales_df, inventory_df)
     print(agg_features)
-    model = train_demand_model(agg_features)
+    model, X = train_demand_model(agg_features)
