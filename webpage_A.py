@@ -29,7 +29,7 @@ from io import BytesIO
 ## set Hugging Face API
 MODEL = "lllyasviel/sd-controlnet-canny" 
 API_URL = f"https://api-inference.huggingface.co/models/{MODEL}"
-TOKEN = ""
+TOKEN = "hf_xxxxxxxxxx" # INSERT API KEY HERE
 HEADERS = {"Authorization": f"Bearer {TOKEN}"}
 
 
