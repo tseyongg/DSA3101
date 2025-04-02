@@ -247,13 +247,6 @@ def add_seasonal_effects(sales_df):
     return sales_df.drop(columns=['seasonality'])
 
 sales_df = add_seasonal_effects(sales_df)
-new_sales_quantity_by_mth = sales_df.groupby('month')['quantity'].sum()
-quant_against_mth = new_sales_quantity_by_mth.plot() # Visualisation of Quantity for each Month
-quant_against_mth.set_ylabel("Quantity")
-quant_against_mth.set_xlabel("Month")
-plt.xticks(np.arange(1,13))
-plt.title("Quantity against Month (After Seasonality Emplification)")
-sales_df.drop(columns=['month']) # Drop month column after visualisation
 
 
 # ========================================================

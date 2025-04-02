@@ -110,7 +110,8 @@ This table is a subset of `catalogue`. It contains only `asin` and `imageURLHigh
 ##### 2. `base`
 This table is a subset of `df_review`, which only includes data on products in the `catalogue`.
 
-##### 3. `inventory`
+#### Synthetic Data Tables
+##### 1. `inventory`
 This table contains product inventory data, derived from `base`.
 | Column Name      | Data Type | Description                           
 |:----------------|:---------:|--------------------------------------------------------------|
@@ -123,7 +124,21 @@ This table contains product inventory data, derived from `base`.
 | `material_cost`  | Float     | The cost of the raw materials used in the product           |
 | `avg_rating`     | Float     | Average rating of the product                               |
 
-##### 4. `sales`
+This dataset simulates realistic inventory characteristics for a list of products (asin). Each feature is generated using a distribution that mirrors typical business scenarios:
+
+- base_price: Estimated from product ratings — higher-rated products tend to be priced higher, with some added randomness.
+
+- stock_level: Simulated using a Poisson distribution, suitable for modeling inventory counts.
+
+- reorder_point: Random integers between 18 and 25 to reflect when restocking should be triggered.
+
+- lead_time_days: Follows a log-normal distribution, modeling the fact that most shipments arrive quickly, but a few take much longer.
+
+- storage_cost: Generated with a Gamma distribution, rightskewed to represent varying storage expenses: that most products will have low to moderate storage costs, and only a few products will have very high storage costs.
+
+- material_cost: Also Gamma-distributed but with higher expected values, as production materials generally cost more than storage.
+
+##### 2. `sales`
 This table contains product sales information.
 | Column Name          | Data Type | Description                           
 |:--------------------|:---------:|--------------------------------------------------------------|
