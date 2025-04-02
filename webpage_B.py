@@ -27,87 +27,12 @@ import io
 
 
 
-## set Hugging Face API
-# MODEL = "lllyasviel/sd-controlnet-canny"   
-# API_URL = f"https://api-inference.huggingface.co/models/{MODEL}"
-# TOKEN = ""
-# HEADERS = {"Authorization": f"Bearer {TOKEN}"}
-
-
-
 from huggingface_hub import InferenceClient
 
 client = InferenceClient(
     provider="hf-inference",
-    api_key="",
+    api_key="hf_xxxxxxxxxxxxxxxxxxx", # INSERT API KEY HERE
 )
-
-# # output is a PIL.Image object
-# image = client.image_to_image(
-#     "cat.png",
-#     prompt="Turn the cat into a tiger.",
-#     model="lllyasviel/sd-controlnet-canny",
-# )
-
-
-
-
-# API_URL = "https://router.huggingface.co/hf-inference/models/lllyasviel/sd-controlnet-canny"
-# headers = {"Authorization": "Bearer hf_xxx"}
-
-# def query(payload):
-#     with open(payload["inputs"], "rb") as f:
-#         img = f.read()
-#         payload["inputs"] = base64.b64encode(img).decode("utf-8")
-#     response = requests.post(API_URL, headers=headers, json=payload)
-#     return response.content
-
-
-
-
-## encode image to base64
-def encode_image(image):
-    """Convert PIL Image to Base64 string."""
-    buffered = BytesIO()
-    image.save(buffered, format="PNG")  # Save image to a buffer
-    return base64.b64encode(buffered.getvalue()).decode("utf-8")
-
-# image_bytes = query({
-#     "inputs": "cat.png",
-#     "parameters": {
-#         "prompt": "Turn the cat into a tiger."
-#     }
-# })
-
-# You can access the image with PIL.Image for example
-# import io
-# from PIL import Image
-# image = Image.open(io.BytesIO(image_bytes))
-
-
-
-
-
-# ## function to call Hugging Face Model via API 
-# def generate_custom_image(prompt, image):
-#     # convert to Base64 image
-#     buffered = BytesIO()
-#     image.save(buffered, format="PNG")
-#     encoded_image = base64.b64encode(buffered.getvalue()).decode("utf-8")
-#     # API request payload
-#     payload = {
-#         "image": encoded_image,  # Send image in Base64 format
-#         "inputs": prompt
-#     }
-#     # Make the request
-#     response = requests.post(API_URL, headers=HEADERS, json=payload, timeout=120)
-#     if response.status_code == 200:
-#         return Image.open(BytesIO(response.content))  # Convert response bytes to an image
-#     else:
-#         st.error(f"❌ API Error {response.status_code}: {response.text}")
-#         return None
-
-
 
 # create the page title
 st.set_page_config(page_title="AI Product Customisation B", layout="wide",
@@ -118,6 +43,7 @@ st.set_page_config(page_title="AI Product Customisation B", layout="wide",
     })
 
 
+# page code
 st.divider()
 st.title("AI-Driven Merchandise Customisation")
 # st.write("Not satisfied with the base product you want? Simply follow the steps below and try customising it to your taste!")
@@ -176,17 +102,22 @@ if step1 != "Select" and (image_link or image_upload):
             # proceed with customisation
             st.success("Your customisation is in progress!")
             st.write(f"Image Source: {step1}")
-            if image_link:
-                st.write(f"Image Link: {image_link}")
-            if image_upload:
-                st.image(image_upload, caption="Uploaded Image", use_column_width=True)
+            # if image_link:
+            #     st.write(f"Image Link: {image_link}")
+            # if image_upload:
+            #     st.image(image_upload, caption="Uploaded Image", use_column_width=True)
 
             st.write(f"Customisation Details: {customisation_text}")
 
             if img:                
-                
-                # if image_upload: # convert into bytes for function to read
-                #     image_link = encode_image(img)
+
+                # converts image upload into url temporarily so model can read
+                if image_upload is not None:
+                    # Save the file temporarily
+                    image_link = "temp_image.jpg"
+                    with open(image_link, "wb") as f:
+                        f.write(image_upload.getbuffer())
+
 
                 image_bytes = client.image_to_image(
                     image=image_link,
@@ -204,10 +135,6 @@ if step1 != "Select" and (image_link or image_upload):
 else:
     if step1 != "Select":
         st.warning("Please provide an image before proceeding to customisation.")
-
-
-
-
 
 
 
