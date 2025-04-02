@@ -1,5 +1,5 @@
 import math
-from DataPrep import products, sales_df, inventory_df
+from data_preparation import products, sales_df, inventory_df
 from demand_forecast import prepare_features, train_demand_model
 
 # ========================================================
