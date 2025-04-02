@@ -129,7 +129,7 @@ if step1 != "Select" and (image_link or image_upload):
                 if image_bytes:
                     st.image(image_bytes, caption="Custom Product Image")
                 else:
-                    st.error("❌ Failed to generate customized image.")
+                    st.error("❌ Failed to generate customised image.")
 
 
 else:
@@ -161,7 +161,7 @@ with bottomleft:
     if thumbs_up:
         st.success("✅ Thank you for your positive feedback!")
     elif neutral or thumbs_down:
-        st.error("❌ We'll work on improving the customization!")
+        st.error("❌ We'll work on improving the customisation!")
         
 with bottomright:
     if thumbs_up or neutral or thumbs_down:
