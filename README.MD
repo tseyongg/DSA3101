@@ -111,7 +111,7 @@ This table is a subset of `catalogue`. It contains only `asin` and `imageURLHigh
 This table is a subset of `df_review`, which only includes data on products in the `catalogue`.
 
 #### Synthetic Data Tables
-##### 1. `inventory`
+##### 1. `inventory_df`
 This table contains product inventory data, derived from `base`.
 | Column Name      | Data Type | Description                           
 |:----------------|:---------:|--------------------------------------------------------------|
@@ -138,7 +138,7 @@ This dataset simulates realistic inventory characteristics for a list of product
 
 - `material_cost`: Also Gamma-distributed but with higher expected values, as production materials generally cost more than storage.
 
-##### 2. `sales`
+##### 2. `sales_df`
 This table contains product sales information.
 | Column Name          | Data Type | Description                           
 |:--------------------|:---------:|--------------------------------------------------------------|
@@ -243,3 +243,27 @@ https://huggingface.co/lllyasviel/sd-controlnet-mlsd
 The M-LSD Straight Line ControlNet is built to detect straight lines. It performs poorly on images with non-straight edges. As such it is not recommended to use this model.
 
 ![Image](https://github.com/user-attachments/assets/d1b5260c-a770-4731-9c22-79f297e237f7)
+
+## Webpages A and B
+
+Considering A/B testing, we decided to build 2 webpages utilising Streamlit to aid in the customisation of products for users.
+
+### Instructions on launching Streamlit webpages
+#### 1. Ensure that working directory is currently in DSA3101 folder
+Type `cd Desktop\DSA3101` in your terminal to navigate to the cloned repository locally. If DSA3101 folder has yet to be clone, follow the instructions at the top of README on GitHub.
+
+### 2. Obtaining API access token to run model on webpages
+An API access token is required to be taken from the Hugging Face website in order to run the models on the webpages. 
+
+To obtain the API key, follow these instructions:
+a. First create a Hugging Face account. 
+b. After creation, click on your profile picture on the top right hand side corner of the page, and go to *"Access Tokens"*.
+c. Click on *"+ Create new token"*, and navigate to *"Write"* for token type.
+d. Choose token name of choice and press *"Create token"*.
+e. Copy the generated token ("hf_xxxxxxxxxxxxxxxxxxxxxxxxxxx") into the `TOKEN` variable of webpages A and B.
+
+The set-up to run webpages is complete.
+
+### 3. Launch and testing of webpage
+If testing `webpage_A.py`, type `streamlit run webpage_A.py` into the terminal.
+If testing `webpage_B.py`, type `streamlit run webpage_B.py` into the terminal.

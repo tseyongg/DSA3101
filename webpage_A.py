@@ -27,9 +27,8 @@ from io import BytesIO
 
 
 ## set Hugging Face API
-MODEL1 = "lllyasviel/sd-controlnet-canny"    
-MODEL2 = "stabilityai/stable-diffusion-xl-refiner-1.0"
-API_URL = f"https://api-inference.huggingface.co/models/{MODEL2}"
+MODEL = "lllyasviel/sd-controlnet-canny" 
+API_URL = f"https://api-inference.huggingface.co/models/{MODEL}"
 TOKEN = ""
 HEADERS = {"Authorization": f"Bearer {TOKEN}"}
 
