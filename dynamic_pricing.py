@@ -7,7 +7,7 @@ from demand_forecast import load_data, prepare_features, train_demand_model
 print("Loading data and training demand forecast model...")
 catalogue, sales_df, inventory_df = load_data()
 agg_features = prepare_features(sales_df, inventory_df)
-model = train_demand_model(agg_features)
+model = train_demand_model(agg_features)[0]
 latest_data = agg_features.sort_values(['asin', 'year', 'month']).groupby('asin').last().reset_index() # Here, we sort to get the latest asin later: we want the most current state of our product
 print("Model ready")
 
