@@ -121,7 +121,7 @@ inventory_data = {
     'base_price': np.round(50 + 20 * (ratings_by_asin.loc[products].values - 3) 
                              + np.random.uniform(-5, 5, size=len(products)), 1),  # Based on ratings and a normal dist.
     'stock_level': np.random.poisson(lam=30, size=len(products)),  # Poisson for stock (counts)
-    'reorder_point': np.random.randint(5, 30, size=len(products)),
+    'reorder_point': np.random.randint(18, 26, size=len(products)),
     'lead_time_days': np.random.lognormal(mean=1.5, sigma=0.6, size=len(products)).astype(int) + 1,  # Lognormal for lead times: right-skewed (many short deliveries, fewer long ones)
     'storage_cost': np.random.gamma(shape=2, scale=1, size=len(products)),  # Gamma for costs (always positive, right-skewed)
     'material_cost': np.random.gamma(shape=5, scale=3, size=len(products))  # Gamma but slightly higher than storage costs, cause production
