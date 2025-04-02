@@ -4,6 +4,7 @@ import requests
 import base64
 from PIL import Image
 from io import BytesIO
+import io
 
 
 ############################################################################
@@ -26,33 +27,12 @@ from io import BytesIO
 
 
 
-## set Hugging Face API
-MODEL = "lllyasviel/sd-controlnet-canny" 
-API_URL = f"https://api-inference.huggingface.co/models/{MODEL}"
-TOKEN = "hf_xxxxxxxxxx" # INSERT API KEY HERE
-HEADERS = {"Authorization": f"Bearer {TOKEN}"}
+from huggingface_hub import InferenceClient
 
-
-# function to call Hugging Face Model via API 
-def generate_custom_image(prompt, image):
-    # convert to Base64 image
-    buffered = BytesIO()
-    image.save(buffered, format="PNG")
-    encoded_image = base64.b64encode(buffered.getvalue()).decode("utf-8")
-    # API request payload
-    payload = {
-        "image": encoded_image,  # Send image in Base64 format
-        "inputs": prompt
-    }
-    # Make the request
-    response = requests.post(API_URL, headers=HEADERS, json=payload, timeout=120)
-    if response.status_code == 200:
-        return Image.open(BytesIO(response.content))  # Convert response bytes to an image
-    else:
-        st.error(f"❌ API Error {response.status_code}: {response.text}")
-        return None
-
-    
+client = InferenceClient(
+    provider="hf-inference",
+    api_key="hf_xxxxxxxxxxxxxxxxxxx", # INSERT API KEY HERE
+)
 
 # create the page title
 st.set_page_config(page_title="AI Product Customisation A", layout="wide",
@@ -61,6 +41,7 @@ st.set_page_config(page_title="AI Product Customisation A", layout="wide",
         'Report a bug': "https://www.extremelycoolapp.com/bug",
         'About': "# This is a header. This is an *extremely* cool app!"
     })
+
 
 # title and description
 st.title("AI-Driven Merchandise Customisation")
@@ -124,17 +105,28 @@ with right:
             else:
                 img = load_image_url(image_url)
             
-            # to generate the customised image via huging face model
-            # ----- uncomment the code below only when ready to test, since API call is limited ------------
-            
+            # to generate the customised image via api call to hugging face model
             if img:
-                image_result = generate_custom_image(text_prompt, img)
-                if image_result:
-                    st.image(image_result, caption="Custom Product Image")
+                # converts image upload into temporary url so model can read
+                if uploaded_image is not None:
+                    # Save the file temporarily
+                    image_url = "temp_image.jpg"
+                    with open(image_url, "wb") as f:
+                        f.write(uploaded_image.getbuffer())
+
+
+                image_bytes = client.image_to_image(
+                    image=image_url,
+                    prompt=text_prompt,
+                    model="lllyasviel/sd-controlnet-canny",
+                    )
+
+
+                if image_bytes:
+                    st.image(image_bytes, caption="Custom Product Image")
                 else:
-                    st.error("❌ Failed to generate customized image.")    
+                    st.error("❌ Failed to generate customised image.")
             
-            # ----- uncomment the code above only when ready to test, since API call is limited ------------
             else:
                 st.error("❌ Invalid image input.")
         else:
