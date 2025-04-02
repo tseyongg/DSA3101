@@ -5,7 +5,7 @@ from xgboost import XGBRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error
 import re
-from DataPrep import catalogue, sales_df, inventory_df
+from data_preparation import catalogue, sales_df, inventory_df
 
 # Load data
 def load_data():
