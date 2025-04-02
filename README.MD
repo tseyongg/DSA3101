@@ -40,9 +40,9 @@ git pull
 **To obtain the API key, follow these instructions:**
 
     a. First create a Hugging Face account.  
-    b. After creation, click on your profile picture on the top right hand side corner of the page, and go to *"Access Tokens"*.  
-    c. Click on *"+ Create new token"*, and navigate to *"Write"* for token type.  
-    d. Choose token name of choice and press *"Create token"*.  
+    b. After creation, click on your profile picture on the top right hand side corner of the page, and go to "Access Tokens".  
+    c. Click on "+ Create new token", and navigate to "Write" for token type.  
+    d. Choose token name of choice and press "Create token".  
     e. Copy the generated token ("hf_xxxxxxxxxxxxxxxxxxxxxxxxxxx") onto your clipboard.  
 
 
