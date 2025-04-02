@@ -108,8 +108,12 @@ Economic_Order_Quantity_df = pred_demand_by_asin.sort_values(by=['Economic_Order
 # ========================================================
 
 if __name__ == "__main__":
+    print('\n')
     print("ABC Analysis Data Frame:")
     print(ABC_analysis_df)
     print('\n')
     print("Inventory Data Frame after JIC/JIT correction for reorder_point:")
     print(new_inventory_df)
+    print('\n')
+    print("Economic Order Quantity Data Frame:")
+    print(Economic_Order_Quantity_df)
