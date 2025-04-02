@@ -6,32 +6,15 @@ from PIL import Image
 from io import BytesIO
 import io
 from huggingface_hub import InferenceClient
+import os
 
 
-############################################################################
-#########           HOW TO LAUNCH & TEST THE WEBPAGE           #############
-# 1. Change directory and launch of webpage
-#   Type  `cd Desktop\DSA3101` in your terminal
-#   to navigate to the cloned repo locally.
-#   If not cloned yet, follow the README instructions on Github.
-#   Then type `streamlit run webpage_B.py` in your terminal to launch webpage
-# 2. Input image (URL or upload)
-#   After the webpage launches,
-#   test using this URL below/just use any random image u have:
-#   https://images-na.ssl-images-amazon.com/images/I/41SyGjt4KdL.jpg
-# 3. Customisation text
-#   Enter some random text for the customisation prompt, then
-#   click the 'Generate Customised Image' button. 
-#   The text below the button differs if there are missing required inputs.
-############################################################################
-############################################################################
-
-
-
+# Fetch API key from environment variable
+api_key = os.getenv("HF_API_KEY")
 
 client = InferenceClient(
     provider="hf-inference",
-    api_key="hf_xxxxxxxxxxxxxxxxxxxxxx", # INSERT API KEY HERE
+    api_key=api_key
 )
 
 # create the page title

@@ -40,6 +40,37 @@ If there are changes, pull the latest version:
 git pull 
 ```
 
+## Building and running Dockerfile
+
+In the same terminal:
+
+```shell
+docker build -t grp10-streamlit-app . 
+```
+
+Obtaining API access key to run model on webpages:
+
+An API access key has to be taken from the Hugging Face website in order to run the models on the webpages. 
+
+**To obtain the API key, follow these instructions:**
+
+a. First create a Hugging Face account. 
+
+b. After creation, click on your profile picture on the top right hand side corner of the page, and go to *"Access Tokens"*.
+
+c. Click on *"+ Create new token"*, and navigate to *"Write"* for token type.
+
+d. Choose token name of choice and press *"Create token"*.
+
+e. Copy the generated token ("hf_xxxxxxxxxxxxxxxxxxxxxxxxxxx") onto your clipboard.
+
+After the image is built (ignore the warnings), replace hf_xxxxxxxxxxxxxxxxxxxxxxxxxxx (below) with your own generated API Key, then:
+
+```shell
+docker run -p 8501:8501 -e HF_API_KEY=hf_xxxxxxxxxxxxxxxxxxxxxxxxxxx grp10-streamlit-app
+```
+
+
 ## About Our Data
 ### Data Source
 Our platform uses the **Amazon Fashion Metadata** and its **5-core** data subset from [**Amazon Review Data (2018)**](https://nijianmo.github.io/amazon/index.html), released by Jianmo Ni at UCSD. These datasets provide key product information and user reviews relevant to fashion items. 
