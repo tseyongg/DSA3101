@@ -71,6 +71,8 @@ To maintain high fidelity to the original image, the hyperparameters are set to 
 
 Without ControlNets, achieving close adherence to the original image becomes challenging. Although adjusting the negative prompts hyperparameter can improve fidelity, it is often tedious and requires careful tuning. Example: negative_prompt = "ugly, deformed, disfigured, poor details, bad anatomy"
 
+
+
 ### Canny Edge Detection (BEST)
 Average runtime: 25s  
 https://huggingface.co/lllyasviel/sd-controlnet-canny
