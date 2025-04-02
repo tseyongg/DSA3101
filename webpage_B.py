@@ -5,6 +5,7 @@ import base64
 from PIL import Image
 from io import BytesIO
 import io
+from huggingface_hub import InferenceClient
 
 
 ############################################################################
@@ -27,11 +28,10 @@ import io
 
 
 
-from huggingface_hub import InferenceClient
 
 client = InferenceClient(
     provider="hf-inference",
-    api_key="hf_xxxxxxxxxxxxxxxxxxx", # INSERT API KEY HERE
+    api_key="hf_xxxxxxxxxxxxxxxxxxxxxx", # INSERT API KEY HERE
 )
 
 # create the page title

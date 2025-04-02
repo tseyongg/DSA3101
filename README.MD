@@ -246,24 +246,32 @@ The M-LSD Straight Line ControlNet is built to detect straight lines. It perform
 
 ## Webpages A and B
 
-Considering A/B testing, we decided to build 2 webpages utilising Streamlit to aid in the customisation of products for users.
+Considering A/B testing, we decided to build 2 webpages utilising Streamlit to aid in the customisation of products for users. Both webpages call onto the Canny Edge Detection model, which was the best model from our testing, to generate AI e-commerce images.
 
 ### Instructions on launching Streamlit webpages
+
 #### 1. Ensure that working directory is currently in DSA3101 folder
-Type `cd Desktop\DSA3101` in your terminal to navigate to the cloned repository locally. If DSA3101 folder has yet to be clone, follow the instructions at the top of README on GitHub.
+Type `cd Desktop\DSA3101` into your terminal to navigate to the cloned repository locally. If DSA3101 folder has yet to be clone, follow the instructions at the top of `README` on GitHub.
 
-### 2. Obtaining API access token to run model on webpages
-An API access token is required to be taken from the Hugging Face website in order to run the models on the webpages. 
+#### 2. Obtaining API access key to run model on webpages
+An API access key has to be taken from the Hugging Face website in order to run the models on the webpages. 
 
-To obtain the API key, follow these instructions:
+**To obtain the API key, follow these instructions:**
+
 a. First create a Hugging Face account. 
+
 b. After creation, click on your profile picture on the top right hand side corner of the page, and go to *"Access Tokens"*.
+
 c. Click on *"+ Create new token"*, and navigate to *"Write"* for token type.
+
 d. Choose token name of choice and press *"Create token"*.
-e. Copy the generated token ("hf_xxxxxxxxxxxxxxxxxxxxxxxxxxx") into the `TOKEN` variable of webpages A and B.
 
-The set-up to run webpages is complete.
+e. Copy the generated token ("hf_xxxxxxxxxxxxxxxxxxxxxxxxxxx") into the `TOKEN` variable of webpages A and B (line 34).
 
-### 3. Launch and testing of webpage
+
+The set-up to run the webpages is now complete.
+
+#### 3. Launch and testing of webpage
 If testing `webpage_A.py`, type `streamlit run webpage_A.py` into the terminal.
+
 If testing `webpage_B.py`, type `streamlit run webpage_B.py` into the terminal.
