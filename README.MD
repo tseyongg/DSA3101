@@ -162,7 +162,7 @@ To maintain high fidelity to the original image, the hyperparameters are set to 
 
 Without ControlNets, achieving close adherence to the original image becomes challenging. Although adjusting the negative prompts hyperparameter can improve fidelity, it is often tedious and requires careful tuning. Example: negative_prompt = "ugly, deformed, disfigured, poor details, bad anatomy"
 
-![alt text](https://github.com/tseyongg/DSA3101/blob/Iamge2Image-Model-Update/Base Model.png?raw=true)
+![alt text](https://github.com/tseyongg/DSA3101/blob/Iamge2Image-Model-Update/Base%20Model.png?raw=true)
 
 ### Canny Edge Detection (BEST)
 Average runtime: 25s  
